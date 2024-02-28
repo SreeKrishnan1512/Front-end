@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voting DApp</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        button {
+            background-color: #3498db;
+            color: #fff;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Voting DApp</h1>
+    <p>Voting status: <span id="votingStatus"></span></p>
+
+    <h2>Candidates</h2>
+    <div id="candidates"></div>
+
+    <h2>Add Candidate</h2>
+    <form id="addCandidateForm">
+        <div>
+            <label for="candidateID">Candidate ID:</label>
+            <input type="number" id="candidateID" required>
+        </div>
+        <div>
+            <label for="candidateAddress">Candidate Address:</label>
+            <input type="text" id="candidateAddress" required>
+        </div>
+        <div>
+            <label for="candidateName">Candidate Name:</label>
+            <input type="text" id="candidateName" required>
+        </div>
+        <div>
+            <label for="candidateOath">Candidate Oath:</label>
+            <input type="text" id="candidateOath" required>
+        </div>
+        <button type="button" onclick="addCandidate()">Add Candidate</button>
+    </form>
+
+    <h2>Add Voter</h2>
+    <form id="addVoterForm">
+        <div>
+            <label for="voterID">Voter ID:</label>
+            <input type="number" id="voterID" required>
+        </div>
+        <div>
+            <label for="voterAddress">Voter Address:</label>
+            <input type="text" id="voterAddress" required>
+        </div>
+        <button type="button" onclick="addVoter()">Add Voter</button>
+    </form>
+
+    <h2>Vote</h2>
+    <form id="voteForm">
+        <div>
+            <label for="voterIDForVote">Voter ID:</label>
+            <input type="number" id="voterIDForVote" required>
+        </div>
+        <div>
+            <label for="candidateIdForVote">Candidate ID:</label>
+            <input type="number" id="candidateIdForVote" required>
+        </div>
+        <button type="button" onclick="vote()">Vote</button>
+    </form>
+
+    <h2>Delegate Vote</h2>
+    <form id="delegateVoteForm">
+        <div>
+            <label for="delegateID">Delegate ID:</label>
+            <input type="number" id="delegateID" required>
+        </div>
+        <div>
+            <label for="delegateAddress">Delegate Address:</label>
+            <input type="text" id="delegateAddress" required>
+        </div>
+        <div>
+            <label for="delegateToVoterID">Delegate To Voter ID:</label>
+            <input type="number" id="delegateToVoterID" required>
+        </div>
+        <div>
+            <label for="delegateVoteForCandidateID">Delegate Vote For Candidate ID:</label>
+            <input type="number" id="delegateVoteForCandidateID" required>
+        </div>
+        <button type="button" onclick="delegateVote()">Delegate Vote</button>
+    </form>
+
+    <h2>Display Winner</h2>
+    <button type="button" onclick="displayWinner()">Display Winner</button>
+
+    <h2>Display Voting Status</h2>
+    <button type="button" onclick="displayVotingStatus()">Display Voting Status</button>
+
+    <!-- Display Candidate Count Button -->
+    <h2>Display Candidate Count</h2>
+    <form id="displayCandidateCountForm">
+        <div>
+            <label for="candidateDetailsID">Candidate ID:</label>
+            <input type="number" id="candidateDetailsID" required>
+        </div>
+        <button type="button" onclick="displayCandidateCount()">Display Candidate Count</button>
+    </form>
+
+    <!-- Display Candidate Details Button -->
+    <h2>Display Candidate Details</h2>
+    <form id="displayCandidateDetailsForm">
+        <div>
+            <label for="candidateDetailsID">Candidate ID:</label>
+            <input type="number" id="candidateDetailsID" required>
+        </div>
+        <button type="button" onclick="displayCandidateDetails()">Display Candidate Details</button>
+    </form>
+
+    <!-- Display Voters Details Button -->
+    <h2>Display Voters Details</h2>
+    <form id="displayVotersDetailsForm">
+        <div>
+            <label for="votersDetailsID">Voter ID:</label>
+            <input type="number" id="votersDetailsID" required>
+        </div>
+        <button type="button" onclick="displayVotersDetails()">Display Voters Details</button>
+    </form>
+
+    <!-- Start Election Button -->
+    <h2>Start Election</h2>
+    <button type="button" onclick="startElection()">Start Election</button>
+
+    <!-- Stop Election Button -->
+    <h2>Stop Election</h2>
+    <button type="button" onclick="stopElection()">Stop Election</button>
+
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.6.0/dist/web3.min.js"></script>
+    <script>
+        const alchemyApiKey = '2JA8D20USVZmhJrABNBdi_-zuDNZEy8j';
+        const alchemyEndpoint = `https://eth-mainnet.alchemyapi.io/v2/2JA8D20USVZmhJrABNBdi_-zuDNZEy8j`;
+
+        const web3 = new Web3(new Web3.providers.HttpProvider(alchemyEndpoint));
+        // Your contract address and ABI
+        const contractAddress = '0x203E87b3DE92d11a7c859856E872492CA10B1cF7';
+        const contractABI =  [{"inputs":[{"internalType":"uint8","name":"_candidateID","type":"uint8"},{"internalType":"address","name":"_candidateAddress","type":"address"},{"internalType":"string","name":"_CandidateName","type":"string"},{"internalType":"string","name":"_CandidateOath","type":"string"}],"name":"addCandidate","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint8","name":"_voterID","type":"uint8"},{"internalType":"address","name":"_voterAddress","type":"address"}],"name":"addVoter","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint8","name":"_delegate_To_VoterID","type":"uint8"},{"internalType":"address","name":"_delegate_To_VoterAddress","type":"address"},{"internalType":"uint8","name":"_delegateID","type":"uint8"},{"internalType":"uint8","name":"_VoteFor_candidateID","type":"uint8"},{"internalType":"address","name":"_delegateAddress","type":"address"}],"name":"delegateVote","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"bool","name":"returnValue","type":"bool"},{"indexed":false,"internalType":"uint256","name":"VoterID","type":"uint256"},{"indexed":true,"internalType":"address","name":"VoterAddress","type":"address"},{"indexed":false,"internalType":"uint256","name":"VoteFor","type":"uint256"}],"name":"Vote","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"bool","name":"returnValue","type":"bool"},{"indexed":false,"internalType":"uint256","name":"CandidateID","type":"uint256"},{"indexed":false,"internalType":"string","name":"CandidateName","type":"string"},{"indexed":true,"internalType":"address","name":"CandidateAddress","type":"address"}],"name":"candidateInfo","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"bool","name":"returnValue","type":"bool"},{"indexed":false,"internalType":"uint256","name":"DelegateID","type":"uint256"},{"indexed":true,"internalType":"address","name":"DelegateAddress","type":"address"},{"indexed":false,"internalType":"uint256","name":"DelegateFor","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"DelegateVoteFor","type":"uint256"}],"name":"delegate","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"bool","name":"returnValue","type":"bool"},{"indexed":false,"internalType":"uint8","name":"Leader","type":"uint8"},{"indexed":true,"internalType":"address","name":"CandidateAddress","type":"address"}],"name":"newLeader","type":"event"},{"inputs":[],"name":"Start_Election","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"Admin","type":"address"},{"indexed":false,"internalType":"string","name":"VotingUpdate","type":"string"},{"indexed":false,"internalType":"bool","name":"returnValue","type":"bool"},{"indexed":false,"internalType":"uint256","name":"Time","type":"uint256"}],"name":"startVoting","type":"event"},{"inputs":[],"name":"Stop_Election","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"Admin","type":"address"},{"indexed":false,"internalType":"string","name":"VotingUpdate","type":"string"},{"indexed":false,"internalType":"bool","name":"returnValue","type":"bool"},{"indexed":false,"internalType":"uint256","name":"Time","type":"uint256"}],"name":"stopVoting","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"bool","name":"returnValue","type":"bool"}],"name":"tieBreaker","type":"event"},{"inputs":[{"internalType":"uint8","name":"_voterID","type":"uint8"},{"internalType":"uint8","name":"_Vote_For_CandidateID","type":"uint8"},{"internalType":"address","name":"_voterAddress","type":"address"}],"name":"vote","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"bool","name":"returnValue","type":"bool"},{"indexed":false,"internalType":"uint256","name":"VoterID","type":"uint256"},{"indexed":true,"internalType":"address","name":"VoterAddress","type":"address"}],"name":"voterInfo","type":"event"},{"inputs":[{"internalType":"uint8","name":"_candidateID","type":"uint8"}],"name":"displayCandidateCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint8","name":"_candidateID","type":"uint8"}],"name":"displayCandidateDetails","outputs":[{"internalType":"uint8","name":"Candidate_ID","type":"uint8"},{"internalType":"address","name":"Candidate_Address","type":"address"},{"internalType":"string","name":"Candidate_Name","type":"string"},{"internalType":"string","name":"Candidate_Oath","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint8","name":"_voterID","type":"uint8"}],"name":"displayVotersDetails","outputs":[{"internalType":"uint8","name":"Voter_ID","type":"uint8"},{"internalType":"address","name":"Voter_Address","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"displayWinner","outputs":[{"internalType":"uint8","name":"Candidate_ID","type":"uint8"},{"internalType":"uint8","name":"Candidate_Total_Votes","type":"uint8"},{"internalType":"address","name":"Candidate_Address","type":"address"},{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"votingStatus","outputs":[{"internalType":"string","name":"Voting_Status","type":"string"}],"stateMutability":"view","type":"function"}];
+
+        const contract = new web3.eth.Contract(contractABI, contractAddress);
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Fetch and display voting status on page load
+            displayVotingStatus();
+        });
+
+        async function addCandidate() {
+            try {
+                const candidateID = document.getElementById('candidateID').value;
+                const candidateAddress = document.getElementById('candidateAddress').value;
+                const candidateName = document.getElementById('candidateName').value;
+                const candidateOath = document.getElementById('candidateOath').value;
+
+                // Call your smart contract's addCandidate function
+                await contract.methods.addCandidate(candidateID, candidateAddress, candidateName, candidateOath).send({ from: '0xE060B039CB9F4c0f962243Dffeb06354c9b68Fb4' });
+                console.log('Candidate added successfully');
+            } catch (error) {
+                console.error('Error adding candidate:', error);
+            }
+        }
+
+        async function addVoter() {
+            try {
+                const voterID = document.getElementById('voterID').value;
+                const voterAddress = document.getElementById('voterAddress').value;
+
+                // Call your smart contract's addVoter function
+                await contract.methods.addVoter(voterID, voterAddress).send({ from: '0xE060B039CB9F4c0f962243Dffeb06354c9b68Fb4' });
+                console.log('Voter added successfully');
+            } catch (error) {
+                console.error('Error adding voter:', error);
+            }
+        }
+
+        async function vote() {
+            try {
+                const voterIDForVote = document.getElementById('voterIDForVote').value;
+                const candidateIdForVote = document.getElementById('candidateIdForVote').value;
+
+                // Call your smart contract's vote function
+                await contract.methods.vote(voterIDForVote, candidateIdForVote).send({ from: '0xE060B039CB9F4c0f962243Dffeb06354c9b68Fb4' });
+                console.log('Vote submitted successfully');
+            } catch (error) {
+                console.error('Error submitting vote:', error);
+            }
+        }
+
+        async function delegateVote() {
+            try {
+                const delegateID = document.getElementById('delegateID').value;
+                const delegateAddress = document.getElementById('delegateAddress').value;
+                const delegateToVoterID = document.getElementById('delegateToVoterID').value;
+                const delegateVoteForCandidateID = document.getElementById('delegateVoteForCandidateID').value;
+
+                // Call your smart contract's delegateVote function
+                await contract.methods.delegateVote(delegateID, delegateAddress, delegateToVoterID, delegateVoteForCandidateID).send({ from: 'your_wallet_address_here' });
+                console.log('Delegate vote submitted successfully');
+            } catch (error) {
+                console.error('Error submitting delegate vote:', error);
+            }
+        }
+
+        async function displayWinner() {
+            try {
+                // Call your smart contract's displayWinner function
+                const result = await contract.methods.displayWinner().call();
+                console.log('Winner:', result);
+            } catch (error) {
+                console.error('Error displaying winner:', error);
+            }
+        }
+
+        async function displayVotingStatus() {
+            try {
+                const result = await contract.methods.votingStatus().call();
+                document.getElementById('votingStatus').innerText = result;
+            } catch (error) {
+                console.error('Error displaying voting status:', error);
+            }
+        }
+
+        async function displayCandidateCount() {
+            try {
+                const candidateID = document.getElementById('candidateDetailsID').value;
+                // Call your smart contract's displayCandidateCount function
+                const result = await contract.methods.displayCandidateCount(candidateID).call();
+                console.log('Candidate Count:', result);
+            } catch (error) {
+                console.error('Error displaying candidate count:', error);
+            }
+        }
+
+        async function displayCandidateDetails() {
+            try {
+                const candidateID = document.getElementById('candidateDetailsID').value;
+                // Call your smart contract's displayCandidateDetails function
+                const result = await contract.methods.displayCandidateDetails(candidateID).call();
+                console.log('Candidate Details:', result);
+            } catch (error) {
+                console.error('Error displaying candidate details:', error);
+            }
+        }
+
+        async function displayVotersDetails() {
+            try {
+                const voterID = document.getElementById('votersDetailsID').value;
+                // Call your smart contract's displayVotersDetails function
+                const result = await contract.methods.displayVotersDetails(voterID).call();
+                console.log('Voter Details:', result);
+            } catch (error) {
+                console.error('Error displaying voters details:', error);
+            }
+        }
+
+        async function startElection() {
+            try {
+                // Call your smart contract's startElection function
+                await contract.methods.startElection().send({ from: '0xE060B039CB9F4c0f962243Dffeb06354c9b68Fb4' });
+                console.log('Election started successfully');
+            } catch (error) {
+                console.error('Error starting election:', error);
+            }
+        }
+
+        async function stopElection() {
+            try {
+                // Call your smart contract's stopElection function
+                await contract.methods.stopElection().send({ from: '0xE060B039CB9F4c0f962243Dffeb06354c9b68Fb4' });
+                console.log('Election stopped successfully');
+            } catch (error) {
+                console.error('Error stopping election:', error);
+            }
+        }
+    </script>
+</body>
+
+</html>
