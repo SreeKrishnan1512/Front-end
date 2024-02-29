@@ -208,7 +208,7 @@
                 const delegateVoteForCandidateID = document.getElementById('delegateVoteForCandidateID').value;
 
                 // Call your smart contract's delegateVote function
-                await contract.methods.delegateVote(delegateID, delegateAddress, delegateToVoterID, delegateVoteForCandidateID).send({ from: 'your_wallet_address_here' });
+                await contract.methods.delegateVote(delegateID, delegateAddress, delegateToVoterID, delegateVoteForCandidateID).send({ from: '0xE060B039CB9F4c0f962243Dffeb06354c9b68Fb4' });
                 console.log('Delegate vote submitted successfully');
             } catch (error) {
                 console.error('Error submitting delegate vote:', error);
